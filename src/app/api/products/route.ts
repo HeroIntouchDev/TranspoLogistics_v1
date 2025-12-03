@@ -6,35 +6,12 @@ export async function GET() {
     return NextResponse.json(products);
 }
 
-import { writeFile, mkdir } from 'fs/promises';
-import path from 'path';
-
 export async function POST(request: Request) {
     try {
         const formData = await request.formData();
-        const image = formData.get('image') as File | null;
-
-        let imagePath = '/placeholder.png';
-
-        if (image) {
-            const bytes = await image.arrayBuffer();
-            const buffer = Buffer.from(bytes);
-
-            // Ensure uploads directory exists
-            const uploadDir = path.join(process.cwd(), 'public', 'uploads');
-            try {
-                await mkdir(uploadDir, { recursive: true });
-            } catch (e) {
-                // Ignore error if directory exists
-            }
-
-            // Create unique filename
-            const filename = `${Date.now()}-${image.name.replace(/\s/g, '-')}`;
-            const filepath = path.join(uploadDir, filename);
-
-            await writeFile(filepath, buffer);
-            imagePath = `/uploads/${filename}`;
-        }
+        // For Vercel/serverless compatibility, do not write files
+        // Use a placeholder image path or store base64 in memory if needed
+        const imagePath = '/placeholder.png';
 
         const newProduct: Product = {
             id: formData.get('id') as string || Math.floor(Math.random() * 1000000).toString(),

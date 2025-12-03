@@ -81,6 +81,18 @@
       "expiryDate": "2025-12-12",
       "thresholdValue": 0,
       "availability": "Out of stock"
+    },
+    {
+      "id": "9",
+      "name": "test9",
+      "category": "9",
+      "buyingPrice": 9,
+      "quantity": 9,
+      "unit": "",
+      "thresholdValue": 0,
+      "expiryDate": "2025-12-04",
+      "availability": "In-stock",
+      "image": "/placeholder.png"
     }
   ],
   "orders": [

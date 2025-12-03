@@ -1,7 +1,4 @@
-import fs from 'fs';
-import path from 'path';
-
-const dataFilePath = path.join(process.cwd(), 'data.json');
+// In-memory mock data only (no filesystem, no database)
 
 export interface Product {
     id: string;
@@ -70,122 +67,90 @@ export interface Database {
     productLists: ProductList[];
     productListItems: ProductListItem[];
 }
-
-function readData(): Database {
-    if (!fs.existsSync(dataFilePath)) {
-        return { products: [], orders: [], exhibitions: [], exhibitionProducts: [], productLists: [], productListItems: [] };
-    }
-    const fileContent = fs.readFileSync(dataFilePath, 'utf-8');
-    return JSON.parse(fileContent);
-}
-
-function writeData(data: Database) {
-    fs.writeFileSync(dataFilePath, JSON.stringify(data, null, 2), 'utf-8');
-}
+// Global, volatile memory store (resets on server restart)
+const mem: Database = {
+    products: [],
+    orders: [],
+    exhibitions: [],
+    exhibitionProducts: [],
+    productLists: [],
+    productListItems: [],
+};
 
 export const db = {
     products: {
-        getAll: () => readData().products,
-        getById: (id: string) => readData().products.find((p) => p.id === id),
+        getAll: () => mem.products,
+        getById: (id: string) => mem.products.find((p) => p.id === id),
         add: (product: Product) => {
-            const data = readData();
-            data.products.push(product);
-            writeData(data);
+            mem.products.push(product);
             return product;
         },
         update: (id: string, updates: Partial<Product>) => {
-            const data = readData();
-            const index = data.products.findIndex((p) => p.id === id);
+            const index = mem.products.findIndex((p) => p.id === id);
             if (index === -1) return null;
-            data.products[index] = { ...data.products[index], ...updates };
-            writeData(data);
-            return data.products[index];
+            mem.products[index] = { ...mem.products[index], ...updates };
+            return mem.products[index];
         },
         delete: (id: string) => {
-            const data = readData();
-            const index = data.products.findIndex((p) => p.id === id);
+            const index = mem.products.findIndex((p) => p.id === id);
             if (index === -1) return false;
-            data.products.splice(index, 1);
-            writeData(data);
+            mem.products.splice(index, 1);
             return true;
         },
     },
     orders: {
-        getAll: () => readData().orders,
+        getAll: () => mem.orders,
         add: (order: Order) => {
-            const data = readData();
-            data.orders.push(order);
-            writeData(data);
+            mem.orders.push(order);
             return order;
         },
     },
     exhibitions: {
-        getAll: () => readData().exhibitions || [],
-        getById: (id: string) => readData().exhibitions?.find((e) => e.id === id),
+        getAll: () => mem.exhibitions || [],
+        getById: (id: string) => mem.exhibitions?.find((e) => e.id === id),
         add: (exhibition: Exhibition) => {
-            const data = readData();
-            if (!data.exhibitions) data.exhibitions = [];
-            data.exhibitions.push(exhibition);
-            writeData(data);
+            mem.exhibitions.push(exhibition);
             return exhibition;
         },
     },
     exhibitionProducts: {
-        getAll: () => readData().exhibitionProducts || [],
-        getByExhibitionId: (exhibitionId: string) => readData().exhibitionProducts?.filter((ep) => ep.exhibitionId === exhibitionId) || [],
+        getAll: () => mem.exhibitionProducts || [],
+        getByExhibitionId: (exhibitionId: string) => mem.exhibitionProducts?.filter((ep) => ep.exhibitionId === exhibitionId) || [],
         add: (exhibitionProduct: ExhibitionProduct) => {
-            const data = readData();
-            if (!data.exhibitionProducts) data.exhibitionProducts = [];
-            data.exhibitionProducts.push(exhibitionProduct);
-            writeData(data);
+            mem.exhibitionProducts.push(exhibitionProduct);
             return exhibitionProduct;
         },
         update: (id: string, updates: Partial<ExhibitionProduct>) => {
-            const data = readData();
-            if (!data.exhibitionProducts) return null;
-            const index = data.exhibitionProducts.findIndex((ep) => ep.id === id);
+            const index = mem.exhibitionProducts.findIndex((ep) => ep.id === id);
             if (index === -1) return null;
-            data.exhibitionProducts[index] = { ...data.exhibitionProducts[index], ...updates };
-            writeData(data);
-            return data.exhibitionProducts[index];
+            mem.exhibitionProducts[index] = { ...mem.exhibitionProducts[index], ...updates };
+            return mem.exhibitionProducts[index];
         }
     },
     productLists: {
-        getAll: () => readData().productLists || [],
-        getByExhibitionId: (exhibitionId: string) => readData().productLists?.filter((pl) => pl.exhibitionId === exhibitionId) || [],
-        getById: (id: string) => readData().productLists?.find((pl) => pl.id === id),
+        getAll: () => mem.productLists || [],
+        getByExhibitionId: (exhibitionId: string) => mem.productLists?.filter((pl) => pl.exhibitionId === exhibitionId) || [],
+        getById: (id: string) => mem.productLists?.find((pl) => pl.id === id),
         add: (productList: ProductList) => {
-            const data = readData();
-            if (!data.productLists) data.productLists = [];
-            data.productLists.push(productList);
-            writeData(data);
+            mem.productLists.push(productList);
             return productList;
         },
         update: (id: string, updates: Partial<ProductList>) => {
-            const data = readData();
-            if (!data.productLists) return null;
-            const index = data.productLists.findIndex((pl) => pl.id === id);
+            const index = mem.productLists.findIndex((pl) => pl.id === id);
             if (index === -1) return null;
-            data.productLists[index] = { ...data.productLists[index], ...updates };
-            writeData(data);
-            return data.productLists[index];
+            mem.productLists[index] = { ...mem.productLists[index], ...updates };
+            return mem.productLists[index];
         }
     },
     productListItems: {
-        getAll: () => readData().productListItems || [],
-        getByProductListId: (productListId: string) => readData().productListItems?.filter((pli) => pli.productListId === productListId) || [],
+        getAll: () => mem.productListItems || [],
+        getByProductListId: (productListId: string) => mem.productListItems?.filter((pli) => pli.productListId === productListId) || [],
         add: (item: ProductListItem) => {
-            const data = readData();
-            if (!data.productListItems) data.productListItems = [];
-            data.productListItems.push(item);
-            writeData(data);
+            mem.productListItems.push(item);
             return item;
         },
         deleteByProductListId: (productListId: string) => {
-            const data = readData();
-            if (!data.productListItems) return;
-            data.productListItems = data.productListItems.filter(item => item.productListId !== productListId);
-            writeData(data);
+            mem.productListItems = mem.productListItems.filter(item => item.productListId !== productListId);
         }
     }
 };
