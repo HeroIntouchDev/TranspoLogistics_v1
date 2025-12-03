@@ -3,9 +3,9 @@ import { db, ExhibitionProduct } from '@/lib/db';
 
 export async function GET(
     request: Request,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
-    const exhibitionId = params.id;
+    const { id: exhibitionId } = await params;
 
     // Get all products for this exhibition
     const exhibitionProducts = db.exhibitionProducts.getByExhibitionId(exhibitionId);
@@ -26,10 +26,10 @@ export async function GET(
 
 export async function POST(
     request: Request,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
-        const exhibitionId = params.id;
+        const { id: exhibitionId } = await params;
         const body = await request.json();
         const { products } = body;
 
